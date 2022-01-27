@@ -13,7 +13,7 @@ public class RpcEncoder extends MessageToByteEncoder<Object> {
 
     private Class<?> genericClass;
 
-    public RpcEncoder(Class<RpcRequest> rpcRequestClass) {
+    public RpcEncoder(Class<?> rpcRequestClass) {
         this.genericClass = rpcRequestClass;
     }
 

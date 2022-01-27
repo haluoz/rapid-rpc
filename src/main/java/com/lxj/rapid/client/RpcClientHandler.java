@@ -1,5 +1,6 @@
 package com.lxj.rapid.client;
 
+import com.lxj.rapid.codec.RpcResponse;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -14,7 +15,7 @@ import java.net.SocketAddress;
  * @author Xingjing.Li
  * @since 2022/1/22
  */
-public class RpcClientHandler extends SimpleChannelInboundHandler<Object> {
+public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
     private Channel channel;
     private SocketAddress remotePeer;
 
@@ -29,10 +30,6 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<Object> {
         this.channel = ctx.channel();
     }
 
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object o) throws Exception {
-
-    }
-
     public SocketAddress getRemotePeer() {
         return remotePeer;
     }
@@ -45,5 +42,10 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<Object> {
     //这样我们的ChannelFutureListener的close事件就会监听到并关闭通道
     public void close(){
         channel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    @Override
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
+
     }
 }

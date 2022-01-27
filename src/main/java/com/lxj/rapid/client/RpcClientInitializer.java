@@ -23,6 +23,5 @@ public class RpcClientInitializer extends ChannelInitializer<SocketChannel> {
         //实际的业务处理器
         pipeline.addLast(new RpcClientHandler());
         pipeline.addLast(new LengthFieldBasedFrameDecoder(65535, 0, 4, 0, 0));
-
     }
 }
