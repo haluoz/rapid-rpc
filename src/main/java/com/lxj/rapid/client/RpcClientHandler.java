@@ -1,5 +1,6 @@
 package com.lxj.rapid.client;
 
+import com.lxj.rapid.codec.RpcRequest;
 import com.lxj.rapid.codec.RpcResponse;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -8,6 +9,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.net.SocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -18,6 +21,8 @@ import java.net.SocketAddress;
 public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
     private Channel channel;
     private SocketAddress remotePeer;
+    //requestId
+    private Map<String, RpcFuture> pendingRpcTable = new ConcurrentHashMap<>();
 
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
@@ -46,6 +51,27 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
+        //
+        String requestId = rpcResponse.getRequestId();
+        RpcFuture rpcFuture = pendingRpcTable.get(requestId);
+        if (rpcFuture != null){
+            rpcFuture.done(rpcResponse);
+            pendingRpcTable.remove(requestId);
+        }
+    }
 
+    /**
+     * 异步发送请求
+     * @return
+     */
+    public RpcFuture sendRequest(RpcRequest request){
+        RpcFuture rpcFuture = new RpcFuture(request);
+        pendingRpcTable.put(request.getRequestId(), rpcFuture);
+        channel.writeAndFlush(request);
+        return  rpcFuture;
+    }
+
+    public Channel getChannel() {
+        return channel;
     }
 }
